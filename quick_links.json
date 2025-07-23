@@ -1,0 +1,20 @@
+{
+  "quicklinks": [
+    {
+      "name": "Create Component",
+      "short_name": "Component",
+      "url": "https://demo.backstage.io/create",
+      "icon_config": {
+        "icon_type": "URL",
+        "url": "https://example.com/icon.png"
+      },
+      "scopes": [
+        "APP_CARD",
+        "NEW_TAB_PAGE",
+        "AUTOCOMPLETE_FUZZY_MATCH",
+        "AUTOCOMPLETE_ZERO_QUERY",
+        "AUTOCOMPLETE_EXACT_MATCH"
+      ]
+    }
+  ]
+}
