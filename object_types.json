@@ -1,0 +1,209 @@
+{
+  "objectTypes": [
+    {
+      "name": "domain",
+      "display_label": "Domain",
+      "doc_category": "KNOWLEDGE_HUB",
+      "summarizable": true,
+      "property_definitions": [
+        {
+          "name": "kind",
+          "display_label": "Kind",
+          "display_label_plural": "Kinds",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 1
+        },
+        {
+          "name": "lifecycle",
+          "display_label": "Lifecycle",
+          "display_label_plural": "Lifecycles",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 2
+        },
+        {
+          "name": "namespace",
+          "display_label": "Namespace",
+          "display_label_plural": "Namespaces",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 3
+        },
+        {
+          "name": "ref",
+          "display_label": "Reference ID",
+          "display_label_plural": "Reference IDs",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "hide_ui_facet": true,
+          "ui_facet_order": 4
+        }
+      ]
+    },
+    {
+      "name": "system",
+      "display_label": "System",
+      "doc_category": "KNOWLEDGE_HUB",
+      "summarizable": true,
+      "property_definitions": [
+        {
+          "name": "kind",
+          "display_label": "Kind",
+          "display_label_plural": "Kinds",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 1
+        },
+        {
+          "name": "lifecycle",
+          "display_label": "Lifecycle",
+          "display_label_plural": "Lifecycles",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 2
+        },
+        {
+          "name": "namespace",
+          "display_label": "Namespace",
+          "display_label_plural": "Namespaces",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 3
+        },
+        {
+          "name": "ref",
+          "display_label": "Reference ID",
+          "display_label_plural": "Reference IDs",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "hide_ui_facet": true,
+          "ui_facet_order": 4
+        }
+      ]
+    },
+    {
+      "name": "component",
+      "display_label": "Component",
+      "doc_category": "KNOWLEDGE_HUB",
+      "summarizable": true,
+      "property_definitions": [
+        {
+          "name": "kind",
+          "display_label": "Kind",
+          "display_label_plural": "Kinds",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 1
+        },
+        {
+          "name": "lifecycle",
+          "display_label": "Lifecycle",
+          "display_label_plural": "Lifecycles",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 2
+        },
+        {
+          "name": "namespace",
+          "display_label": "Namespace",
+          "display_label_plural": "Namespaces",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 3
+        },
+        {
+          "name": "ref",
+          "display_label": "Reference ID",
+          "display_label_plural": "Reference IDs",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "hide_ui_facet": true,
+          "ui_facet_order": 4
+        }
+      ]
+    },
+    {
+      "name": "api",
+      "display_label": "API",
+      "doc_category": "KNOWLEDGE_HUB",
+      "summarizable": true,
+      "property_definitions": [
+        {
+          "name": "kind",
+          "display_label": "Kind",
+          "display_label_plural": "Kinds",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 1
+        },
+        {
+          "name": "lifecycle",
+          "display_label": "Lifecycle",
+          "display_label_plural": "Lifecycles",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 2
+        },
+        {
+          "name": "namespace",
+          "display_label": "Namespace",
+          "display_label_plural": "Namespaces",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 3
+        },
+        {
+          "name": "ref",
+          "display_label": "Reference ID",
+          "display_label_plural": "Reference IDs",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "hide_ui_facet": true,
+          "ui_facet_order": 4
+        }
+      ]
+    },
+    {
+      "name": "resource",
+      "display_label": "Resource",
+      "doc_category": "KNOWLEDGE_HUB",
+      "summarizable": true,
+      "property_definitions": [
+        {
+          "name": "kind",
+          "display_label": "Kind",
+          "display_label_plural": "Kinds",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 1
+        },
+        {
+          "name": "lifecycle",
+          "display_label": "Lifecycle",
+          "display_label_plural": "Lifecycles",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 2
+        },
+        {
+          "name": "namespace",
+          "display_label": "Namespace",
+          "display_label_plural": "Namespaces",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "ui_facet_order": 3
+        },
+        {
+          "name": "ref",
+          "display_label": "Reference ID",
+          "display_label_plural": "Reference IDs",
+          "property_type": "TEXT",
+          "ui_options": "SEARCH_RESULT",
+          "hide_ui_facet": true,
+          "ui_facet_order": 4
+        }
+      ]
+    }
+  ]
+}

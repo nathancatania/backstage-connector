@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backstage-connector"
+version = "0.1.0"
+description = "Backstage Custom Connector for Glean to index software catalog entities"
+authors = [
+    { name = "Nathan Catania" }
+]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "email-validator>=2.2.0",
+    "glean-api-client>=0.7.1",
+    "httpx>=0.28.1",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "rich>=14.0.0",
+    "click>=8.1.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.25.0",
+    "uuid7>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/nathancatania/backstage-connector"
+Documentation = "https://github.com/nathancatania/backstage-connector/blob/main/README.md"
+Repository = "https://github.com/nathancatania/backstage-connector.git"
+Issues = "https://github.com/nathancatania/backstage-connector/issues"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+exclude = ["archive*", "tests*", "backstage-config*", "backstage-sync-output*", "img*"]
+
+[project.scripts]
+backstage-sync = "src.cli:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
