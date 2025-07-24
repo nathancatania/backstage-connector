@@ -1,10 +1,14 @@
-# Backstage to Glean Connector
+# Backstage Connector for Glean
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![UV](https://img.shields.io/badge/package%20manager-uv-purple.svg)](https://github.com/astral-sh/uv)
 
-This is a custom Glean connector for Backstage.io. It will push your catalog to Glean for indexing; making your entire software ecosystem searchable and discoverable through Glean's enterprise search and AI features.
+This is a custom Glean connector for Backstage.io.
+
+It will push your catalog to Glean for indexing; making your entire software ecosystem searchable and discoverable through Glean's enterprise search and AI features.
+
+![backstage-banner](https://backstage.io/img/sharing-opengraph.png)
 
 ## 🚀 Quick Start
 
@@ -47,7 +51,7 @@ The Backstage to Glean Connector bridges your Backstage software catalog with Gl
 
 ### What Gets Synced
 
-- **Catalog Entities**: Components, APIs, Systems, Domains, Resources, Locations
+- **Catalog Entities**: Components, APIs, Systems, Domains, Resources
 - **Identity & Access**: Users, Groups, and their relationships
 - **Metadata**: Descriptions, tags, links, documentation, and custom attributes
 - **Permissions**: Ownership and group memberships for secure search
@@ -57,13 +61,14 @@ The Backstage to Glean Connector bridges your Backstage software catalog with Gl
 ```
 ┌─────────────────┐         ┌──────────────────┐         ┌───────────────┐
 │                 │         │                  │         │               │
-│   Backstage     │ ──API──▶│  Connector       │ ──API──▶│    Glean      │
-│   Catalog       │         │                  │         │    Search     │
-│                 │         │ • Fetch Entities │         │               │
-│ • Components    │         │ • Map Data       │         │ • Documents   │
-│ • APIs          │         │ • Sync Identity  │         │ • Identity    │
-│ • Systems       │         │ • Push Documents │         │ • Permissions │
-│ • Users/Groups  │         │ • Handle Errors  │         │               │
+│   Backstage     │ ──API──▶│    Connector     │ ──API──▶│    Glean      │
+│                 │         │                  │         │               │
+│ • Components    │         │ • Fetch Entities │         │ • Documents   │
+│ • APIs          │         │ • Map Data       │         │ • Identity    │
+│ • Domains       │         │ • Sync Identity  │         │ • Permissions │
+│ • Resources     │         │ • Push Entities  │         │               │
+│ • Systems       │         │ • Handle Errors  │         │               │
+│ • Users/Groups  │         │                  │         │               │
 │                 │         │                  │         │               │
 └─────────────────┘         └──────────────────┘         └───────────────┘
 ```
@@ -133,13 +138,17 @@ The Backstage to Glean Connector bridges your Backstage software catalog with Gl
 | ------------------------ | ------------------------------ | ------------------------------- |
 | `BACKSTAGE_BASE_URL`     | Your Backstage instance URL    | `https://backstage.example.com` |
 | `GLEAN_INSTANCE_NAME`    | Your Glean instance identifier | `mycompany`                     |
-| `GLEAN_INDEXING_API_KEY` | API key for Glean Indexing API | `glean_api_...`                 |
+| `GLEAN_INDEXING_API_KEY` | API key for Glean Indexing API | -                               |
+| `BACKSTAGE_API_TOKEN`    | Static Auth Token for the Backstage API. | -                     |
+
+The Backstage Auth token can be ommitted if your Backstage API does not require authentication (not typical).
+
 
 ### Optional Settings
 
 | Variable                  | Description                        | Default |
 | ------------------------- | ---------------------------------- | ------- |
-| `BACKSTAGE_API_TOKEN`     | Auth token for protected Backstage | None    |
+| `DEFAULT_PERMISSIONS`     | Default permissions to fallback to (see below) | `datasource-users` |
 | `SYNC_BATCH_SIZE`         | Documents per batch                | `50`    |
 | `SYNC_COMPONENTS_ENABLED` | Sync Component entities            | `true`  |
 | `SYNC_APIS_ENABLED`       | Sync API entities                  | `true`  |
@@ -152,32 +161,19 @@ The Backstage to Glean Connector bridges your Backstage software catalog with Gl
 | `VERIFY_SSL`              | Verify SSL certificates            | `true`  |
 | `LOG_LEVEL`               | Logging verbosity                  | `INFO`  |
 
-### Advanced Configuration
+The `DEFAULT_PERMISSIONS` variable defines what permissions should be assigned to any entity in Backstage that has no permissions associated with it.
 
-```bash
-# Custom datasource name
-GLEAN_DATASOURCE_NAME="backstage-catalog"
+You likely will **not** want to change this, but the following values can be set:
 
-# Sync specific entity kinds only
-SYNC_COMPONENTS_ENABLED=true
-SYNC_APIS_ENABLED=true
-SYNC_SYSTEMS_ENABLED=false
-# ... etc
+| Value                     | Description                        |
+| ------------------------- | ---------------------------------- |
+| `all-users`     | Indexed items without explicit permissions are visible in Glean to ALL users; regardless of whether they have Backstage access or not |
+| `datasource-users`         | Indexed items without explicit permissions are visible in Glean to any user with Backstage access (default) |
+| `owner` | Indexed items without explicit permissions are visible only to the owner (if specified, and only if the owner is a user, not a group); otherwise this is the same as none |
+| `none`       | Indexed items without explicit permissions are visible to no one |
 
-# Performance tuning
-SYNC_BATCH_SIZE=100
-REQUEST_TIMEOUT=30
-```
 
 ## 📘 CLI Reference
-
-### `init-env`
-Generate a template `.env` file with all available configuration options.
-
-```bash
-uv run backstage-sync init-env
-# Creates: .env.template
-```
 
 ### `test-connection`
 Verify connectivity to both Backstage and Glean APIs.
@@ -261,42 +257,6 @@ uv run backstage-sync --config /path/to/custom.env sync
 4. **Permission Assignment**: Ownership and access controls are mapped
 5. **Batch Upload**: Documents are pushed to Glean in configurable batches
 6. **Cleanup**: Glean removes any stale content not in the latest sync
-
-### Data Mapping
-
-#### Users → Employees
-```json
-{
-  "email": "user@example.com",
-  "name": "John Doe",
-  "profileUrl": "https://backstage.example.com/catalog/default/user/john.doe"
-}
-```
-
-#### Groups → Teams
-```json
-{
-  "name": "platform-team",
-  "description": "Platform Engineering Team",
-  "members": ["user1@example.com", "user2@example.com"],
-  "profileUrl": "https://backstage.example.com/catalog/default/group/platform-team"
-}
-```
-
-#### Components → Documents
-```json
-{
-  "title": "Payment Service",
-  "description": "Handles payment processing",
-  "type": "SERVICE",
-  "owner": "platform-team",
-  "tags": ["backend", "payments", "critical"],
-  "links": {
-    "repository": "https://github.com/company/payment-service",
-    "documentation": "https://docs.company.com/payment-service"
-  }
-}
-```
 
 ## 🚨 Troubleshooting
 
