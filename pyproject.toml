@@ -5,7 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "backstage-connector"
 version = "0.1.0"
-description = "Backstage to Glean integration for indexing catalog entities"
+description = "Backstage Custom Connector for Glean to index software catalog entities"
+authors = [
+    { name = "Nathan Catania" }
+]
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -21,12 +25,18 @@ dependencies = [
     "uuid7>=0.1.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/nathancatania/backstage-connector"
+Documentation = "https://github.com/nathancatania/backstage-connector/blob/main/README.md"
+Repository = "https://github.com/nathancatania/backstage-connector.git"
+Issues = "https://github.com/nathancatania/backstage-connector/issues"
+
 [tool.setuptools.packages.find]
-include = ["backstage_connector*"]
-exclude = ["archive*", "tests*", "backstage-config*", "backstage-sync-output*"]
+include = ["src*"]
+exclude = ["archive*", "tests*", "backstage-config*", "backstage-sync-output*", "img*"]
 
 [project.scripts]
-backstage-sync = "backstage_connector.cli:cli"
+backstage-sync = "src.cli:cli"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

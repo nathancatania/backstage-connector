@@ -8,7 +8,43 @@ This is a custom Glean connector for Backstage.io.
 
 It will push your catalog to Glean for indexing; making your entire software ecosystem searchable and discoverable through Glean's enterprise search and AI features.
 
-![backstage-banner](https://backstage.io/img/sharing-opengraph.png)
+![banner](img/banner.webp)
+
+## TOC
+- [🚀 Quick Start](#-quick-start)
+- [📋 Overview](#-overview)
+  - [Key Benefits](#key-benefits)
+  - [What Gets Synced](#what-gets-synced)
+- [🏗️ Architecture](#️-architecture)
+- [🛠️ Installation](#️-installation)
+  - [Prerequisites](#prerequisites)
+  - [Configuring Backstage](#configuring-backstage)
+  - [Verify Backstage User Format](#verify-backstage-user-format)
+  - [Connector Setup](#connector-setup)
+- [⚙️ Configuration](#️-configuration)
+  - [Required Settings](#required-settings)
+  - [Optional Settings](#optional-settings)
+- [📘 CLI Reference](#-cli-reference)
+  - [`test-connection`](#test-connection)
+  - [`show-config`](#show-config)
+  - [`dry-run`](#dry-run)
+  - [`sync`](#sync)
+- [🔄 Sync Process](#-sync-process)
+  - [How It Works](#how-it-works)
+- [🚨 Troubleshooting](#-troubleshooting)
+  - [Common Issues](#common-issues)
+  - [Getting Help](#getting-help)
+- [🔒 Security Considerations](#-security-considerations)
+- [💡 Example Use Cases](#-example-use-cases)
+  - [Automated Daily Sync](#automated-daily-sync)
+  - [CI/CD Integration](#cicd-integration)
+  - [Selective Sync](#selective-sync)
+- [🤝 Contributing](#-contributing)
+  - [Development Setup](#development-setup)
+  - [Code Standards](#code-standards)
+  - [Submitting Changes](#submitting-changes)
+- [📝 License](#-license)
+
 
 ## 🚀 Quick Start
 
@@ -93,7 +129,118 @@ The Backstage to Glean Connector bridges your Backstage software catalog with Gl
   powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
   ```
 
-### Setup Steps
+
+### Configuring Backstage
+
+A Static Auth token will be created in Backstage for the connector to use. This token will be scoped for READ access to the Catalog only.
+
+1. **Generate a secure auth token**
+    ```bash
+    # Generate a token using Python
+    python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+    # OR
+
+    # Generate a token using node
+    node -p 'require("crypto").randomBytes(32).toString("base64")'
+    ```
+
+2. **Add the auth token to the Backstage app config**
+    ```yaml
+    backend:
+      auth:
+        externalAccess:
+          - type: static
+            options:
+              token: token-generated-in-step-1-above
+              subject: "glean-backstage-connector"
+            accessRestrictions:
+              - plugin: catalog
+                permissionAttribute:
+                  action:
+                    - read
+    ```
+    * This will either be in `app-config.yml`, or `app-config.production.yaml` depending on how your Backstage deployment is configured.
+    * The `subject` can be whatever you like. It is used for logging purposes within Backstage.
+    * The `accessRestrictions` only permit the token to READ from the Catalog plugin. It is not able to perform any other action, or access any other data.
+
+> [!IMPORTANT]
+> There may be multiple `auth` sections in the config! Ensure you add the configuration at the right level!
+
+   * It is important that the `externalAccess` section is placed under `auth` underneath the root `backend` section: You may need to add this if it is not there already.
+
+   * Do not get confused with the `auth` section that contains the sign-in settings for the frontend! Placing the `externalAccess` section here will mean your token will not work! An example is below:
+
+     ```yaml
+     auth:
+       # NOT THIS AUTH STANZA!!
+       providers:
+         guest: {}
+         github:
+           development:
+             clientId: redacted
+             clientSecret: redacted
+             signIn:
+               resolvers:
+                 - resolver: usernameMatchingUserEntityName
+     backend:
+       auth:
+         # THIS ONE below 'backend'. You might need to add this if it isn't there already!
+         externalAccess:
+           - type: static
+             options:
+               token: token-generated-in-step-1-above
+               subject: "glean-backstage-connector"
+             accessRestrictions:
+               - plugin: catalog
+                 permissionAttribute:
+                   action:
+                     - read
+     ```
+
+3. **Start Backstage**
+     ```bash
+     yarn start
+     ```
+
+4. **Verify the token works**
+      ```bash
+      curl -X GET "{your_backstage_base_url}/api/catalog/entities" -H "Authorization: Bearer token-generated-in-step-1-above"
+      ```
+
+   * If you get a response that is just an empty list, `[]`, the access restrictions/permissions for the token are set incorrectly.
+
+### Verify Backstage User Format
+In Backstage, all of your users must have an email address associated with them. Without this, the connector will not be able to match your Backstage user accounts to accounts in your corporate directory when syncing to Glean.
+
+To check this, you can make a call to the Backstage API yourself using Postman/Bruno/Curl and the auth token created. Check whether there is an `email` parameter under the `spec` section for each user record returned.
+```
+curl -X GET "{your_backstage_base_url}/api/catalog/entities/by-query?filter=kind=user&limit=1" -H "Authorization: Bearer token-generated-in-step-1-above"
+
+...
+{
+  "metadata": {
+    ...
+    "name": "samsample",
+    ...
+  },
+  "apiVersion": "backstage.io/v1alpha1",
+  "kind": "User",
+  "spec": {
+    "memberOf": [...],
+    "profile": {
+      "displayName": "Sam Sample",
+      "email": "sam@company.com"    <--- You want to look for this
+    }
+  },
+  "relations": [...]
+},
+...
+```
+
+If your users do not have an email address associated with them, a workaround for this is to set the `DEFAULT_PERMISSIONS` variable for the connector (see below) to `all-users`. This tells the connector not to care about user identities & permissions, and make Backstage content available to all Glean users.
+
+### Connector Setup
 
 1. **Clone the repository**
    ```bash
@@ -134,43 +281,43 @@ The Backstage to Glean Connector bridges your Backstage software catalog with Gl
 
 ### Required Settings
 
-| Variable                 | Description                    | Example                         |
-| ------------------------ | ------------------------------ | ------------------------------- |
-| `BACKSTAGE_BASE_URL`     | Your Backstage instance URL    | `https://backstage.example.com` |
-| `GLEAN_INSTANCE_NAME`    | Your Glean instance identifier | `mycompany`                     |
-| `GLEAN_INDEXING_API_KEY` | API key for Glean Indexing API | -                               |
-| `BACKSTAGE_API_TOKEN`    | Static Auth Token for the Backstage API. | -                     |
+| Variable                 | Description                              | Example                         |
+| ------------------------ | ---------------------------------------- | ------------------------------- |
+| `BACKSTAGE_BASE_URL`     | Your Backstage instance URL              | `https://backstage.example.com` |
+| `GLEAN_INSTANCE_NAME`    | Your Glean instance identifier           | `mycompany`                     |
+| `GLEAN_INDEXING_API_KEY` | API key for Glean Indexing API           | -                               |
+| `BACKSTAGE_API_TOKEN`    | Static Auth Token for the Backstage API. | -                               |
 
 The Backstage Auth token can be ommitted if your Backstage API does not require authentication (not typical).
 
 
 ### Optional Settings
 
-| Variable                  | Description                        | Default |
-| ------------------------- | ---------------------------------- | ------- |
+| Variable                  | Description                                    | Default            |
+| ------------------------- | ---------------------------------------------- | ------------------ |
 | `DEFAULT_PERMISSIONS`     | Default permissions to fallback to (see below) | `datasource-users` |
-| `SYNC_BATCH_SIZE`         | Documents per batch                | `50`    |
-| `SYNC_COMPONENTS_ENABLED` | Sync Component entities            | `true`  |
-| `SYNC_APIS_ENABLED`       | Sync API entities                  | `true`  |
-| `SYNC_SYSTEMS_ENABLED`    | Sync System entities               | `true`  |
-| `SYNC_DOMAINS_ENABLED`    | Sync Domain entities               | `true`  |
-| `SYNC_RESOURCES_ENABLED`  | Sync Resource entities             | `true`  |
-| `SYNC_USERS_ENABLED`      | Sync User entities                 | `true`  |
-| `SYNC_GROUPS_ENABLED`     | Sync Group entities                | `true`  |
-| `SYNC_LOCATIONS_ENABLED`  | Sync Location entities             | `true`  |
-| `VERIFY_SSL`              | Verify SSL certificates            | `true`  |
-| `LOG_LEVEL`               | Logging verbosity                  | `INFO`  |
+| `SYNC_BATCH_SIZE`         | Documents per batch                            | `50`               |
+| `SYNC_COMPONENTS_ENABLED` | Sync Component entities                        | `true`             |
+| `SYNC_APIS_ENABLED`       | Sync API entities                              | `true`             |
+| `SYNC_SYSTEMS_ENABLED`    | Sync System entities                           | `true`             |
+| `SYNC_DOMAINS_ENABLED`    | Sync Domain entities                           | `true`             |
+| `SYNC_RESOURCES_ENABLED`  | Sync Resource entities                         | `true`             |
+| `SYNC_USERS_ENABLED`      | Sync User entities                             | `true`             |
+| `SYNC_GROUPS_ENABLED`     | Sync Group entities                            | `true`             |
+| `SYNC_LOCATIONS_ENABLED`  | Sync Location entities                         | `true`             |
+| `VERIFY_SSL`              | Verify SSL certificates                        | `true`             |
+| `LOG_LEVEL`               | Logging verbosity                              | `INFO`             |
 
 The `DEFAULT_PERMISSIONS` variable defines what permissions should be assigned to any entity in Backstage that has no permissions associated with it.
 
 You likely will **not** want to change this, but the following values can be set:
 
-| Value                     | Description                        |
-| ------------------------- | ---------------------------------- |
-| `all-users`     | Indexed items without explicit permissions are visible in Glean to ALL users; regardless of whether they have Backstage access or not |
-| `datasource-users`         | Indexed items without explicit permissions are visible in Glean to any user with Backstage access (default) |
-| `owner` | Indexed items without explicit permissions are visible only to the owner (if specified, and only if the owner is a user, not a group); otherwise this is the same as none |
-| `none`       | Indexed items without explicit permissions are visible to no one |
+| Value              | Description                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `all-users`        | Indexed items without explicit permissions are visible in Glean to ALL users; regardless of whether they have Backstage access or not                                     |
+| `datasource-users` | Indexed items without explicit permissions are visible in Glean to any user with Backstage access (default)                                                               |
+| `owner`            | Indexed items without explicit permissions are visible only to the owner (if specified, and only if the owner is a user, not a group); otherwise this is the same as none |
+| `none`             | Indexed items without explicit permissions are visible to no one                                                                                                          |
 
 
 ## 📘 CLI Reference
@@ -205,7 +352,7 @@ uv run backstage-sync show-config
 Preview what would be synced without pushing to Glean.
 
 ```bash
-uv run backstage-sync dry-run
+uv run backstage-sync sync --dry-run
 
 # Output:
 # Dry Run Results:
@@ -233,18 +380,6 @@ uv run backstage-sync sync
 # │   ├── APIs: 42/42 [████████████] 100%
 # │   └── Systems: 12/12 [████████████] 100%
 # └── ✓ Sync completed successfully!
-```
-
-### Options
-
-All commands support these global options:
-
-- `--log-level`: Set logging verbosity (DEBUG, INFO, WARNING, ERROR)
-- `--config`: Path to custom .env file
-
-```bash
-uv run backstage-sync --log-level DEBUG sync
-uv run backstage-sync --config /path/to/custom.env sync
 ```
 
 ## 🔄 Sync Process
@@ -283,60 +418,18 @@ Warning: No components found in Backstage
 - Verify Backstage catalog contains the expected entities
 - Ensure API token has read permissions for all entity types
 
-#### SSL Certificate Errors
-```
-Error: SSL: CERTIFICATE_VERIFY_FAILED
-```
-**Solution**: For self-signed certificates, set `VERIFY_SSL=false` (not recommended for production).
-
-### Debug Mode
-
-Enable detailed logging for troubleshooting:
-
-```bash
-# Via environment variable
-LOG_LEVEL=DEBUG uv run backstage-sync sync
-
-# Via CLI option
-uv run backstage-sync --log-level DEBUG sync
-```
-
 ### Getting Help
 
-1. Check logs in debug mode
-2. Verify all credentials and URLs
-3. Test each service independently with `test-connection`
-4. Review Glean's indexing logs for errors
+1. Verify all credentials and URLs
+2. Test each service independently with `test-connection`
+3. Review Glean's indexing logs for errors
 
 ## 🔒 Security Considerations
-
-### API Keys and Tokens
-
-- Store credentials in `.env` file (never commit to version control)
-- Use environment-specific credentials for dev/staging/prod
-- Rotate API keys regularly
-- Limit API key permissions to minimum required
-
-### Network Security
-
-- Always use HTTPS for API communications
-- Verify SSL certificates in production (`VERIFY_SSL=true`)
-- Consider using VPN or private networking for sensitive data
-- Implement rate limiting to avoid overwhelming APIs
-
-### Data Privacy
 
 - The connector only reads data, never modifies Backstage
 - Respects Backstage visibility and access controls
 - Synced data inherits Glean's security model
-- No data is stored locally after sync completes
-
-### Audit and Monitoring
-
-- All sync operations are logged with timestamps
-- Monitor sync job execution for failures
-- Set up alerts for authentication failures
-- Review Glean access logs regularly
+- No data is stored locally in the connector after sync completes
 
 ## 💡 Example Use Cases
 
@@ -369,15 +462,6 @@ SYNC_GROUPS_ENABLED=false \
 uv run backstage-sync sync
 ```
 
-### Multi-Environment Setup
-```bash
-# Development
-uv run backstage-sync --config .env.dev sync
-
-# Production
-uv run backstage-sync --config .env.prod sync
-```
-
 ## 🤝 Contributing
 
 We welcome contributions! Please follow these guidelines:
@@ -385,7 +469,7 @@ We welcome contributions! Please follow these guidelines:
 ### Development Setup
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/backstage-connector
+git clone https://github.com/nathancatania/backstage-connector.git
 cd backstage-connector
 
 # Create virtual environment
@@ -395,7 +479,7 @@ uv sync --dev
 uv run pytest
 
 # Run linting
-uv run ruff check backstage_connector tests
+uv run ruff check src tests
 ```
 
 ### Code Standards
@@ -415,10 +499,13 @@ uv run ruff check backstage_connector tests
 
 ## 📝 License
 
+> [!NOTE]
+>
+> This project is not affiliated with Glean, Backstage, or Spotify.
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+**You use this tool at your own risk!**
+If it somehow deletes all of your company's data, burns down your house, and nukes your dog from orbit - it will be your own fault.
 
-- [Backstage.io](https://backstage.io) for the amazing developer portal
-- [Glean](https://glean.com) for enterprise search capabilities
-- The open source community for invaluable tools and libraries
+*That being said, I don't recall adding any code that would do this...* 🤷‍♂️

@@ -22,8 +22,8 @@ sys.modules['glean'] = MagicMock()
 sys.modules['glean.api_client'] = MagicMock()
 sys.modules['glean.api_client'].models = mock_models
 
-from backstage_connector.mapper import BackstageToGleanMapper  # noqa: E402
-from backstage_connector.models import Entity, EntityMetadata  # noqa: E402
+from src.mapper import BackstageToGleanMapper  # noqa: E402
+from src.models import Entity, EntityMetadata  # noqa: E402
 
 
 @pytest.fixture

@@ -51,7 +51,7 @@ def create_progress() -> Progress:
 
 def log_info(message: str, extra: dict | None = None) -> None:
     """Log an info message with optional extra context."""
-    logger = get_logger("backstage_connector")
+    logger = get_logger("src")
     if extra:
         message = f"{message} | {extra}"
     logger.info(message)
@@ -59,7 +59,7 @@ def log_info(message: str, extra: dict | None = None) -> None:
 
 def log_error(message: str, exception: Exception | None = None) -> None:
     """Log an error message with optional exception."""
-    logger = get_logger("backstage_connector")
+    logger = get_logger("src")
     if exception:
         logger.error(message, exc_info=True)
     else:
@@ -68,11 +68,11 @@ def log_error(message: str, exception: Exception | None = None) -> None:
 
 def log_warning(message: str) -> None:
     """Log a warning message."""
-    logger = get_logger("backstage_connector")
+    logger = get_logger("src")
     logger.warning(message)
 
 
 def log_debug(message: str) -> None:
     """Log a debug message."""
-    logger = get_logger("backstage_connector")
+    logger = get_logger("src")
     logger.debug(message)

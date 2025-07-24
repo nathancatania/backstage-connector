@@ -2,7 +2,7 @@
 
 import pytest
 
-from backstage_connector.config import Settings
+from src.config import Settings
 
 
 def test_settings_from_env(monkeypatch):

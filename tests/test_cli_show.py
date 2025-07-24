@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
-from backstage_connector.cli import show
-from backstage_connector.models import Entity, EntityMetadata
+from src.cli import show
+from src.models import Entity, EntityMetadata
 
 
 @pytest.fixture
@@ -112,8 +112,8 @@ def test_show_users_command(runner, mock_backstage_client, sample_users):
 
     mock_backstage_client.fetch_entities = mock_fetch_entities
 
-    with patch("backstage_connector.cli.get_settings") as mock_settings:
-        with patch("backstage_connector.cli.BackstageClient") as mock_client_class:
+    with patch("src.cli.get_settings") as mock_settings:
+        with patch("src.cli.BackstageClient") as mock_client_class:
             mock_client_class.return_value = mock_backstage_client
 
             result = runner.invoke(show, ["users"])
@@ -135,8 +135,8 @@ def test_show_users_with_limit(runner, mock_backstage_client, sample_users):
 
     mock_backstage_client.fetch_entities = mock_fetch_entities
 
-    with patch("backstage_connector.cli.get_settings") as mock_settings:
-        with patch("backstage_connector.cli.BackstageClient") as mock_client_class:
+    with patch("src.cli.get_settings") as mock_settings:
+        with patch("src.cli.BackstageClient") as mock_client_class:
             mock_client_class.return_value = mock_backstage_client
 
             result = runner.invoke(show, ["users", "--limit", "1"])
@@ -156,8 +156,8 @@ def test_show_groups_command(runner, mock_backstage_client, sample_groups):
 
     mock_backstage_client.fetch_entities = mock_fetch_entities
 
-    with patch("backstage_connector.cli.get_settings") as mock_settings:
-        with patch("backstage_connector.cli.BackstageClient") as mock_client_class:
+    with patch("src.cli.get_settings") as mock_settings:
+        with patch("src.cli.BackstageClient") as mock_client_class:
             mock_client_class.return_value = mock_backstage_client
 
             result = runner.invoke(show, ["groups"])
@@ -178,8 +178,8 @@ def test_show_components_command(runner, mock_backstage_client, sample_component
 
     mock_backstage_client.fetch_entities = mock_fetch_entities
 
-    with patch("backstage_connector.cli.get_settings") as mock_settings:
-        with patch("backstage_connector.cli.BackstageClient") as mock_client_class:
+    with patch("src.cli.get_settings") as mock_settings:
+        with patch("src.cli.BackstageClient") as mock_client_class:
             mock_client_class.return_value = mock_backstage_client
 
             result = runner.invoke(show, ["components"])
@@ -200,8 +200,8 @@ def test_show_empty_results(runner, mock_backstage_client):
 
     mock_backstage_client.fetch_entities = mock_fetch_entities
 
-    with patch("backstage_connector.cli.get_settings") as mock_settings:
-        with patch("backstage_connector.cli.BackstageClient") as mock_client_class:
+    with patch("src.cli.get_settings") as mock_settings:
+        with patch("src.cli.BackstageClient") as mock_client_class:
             mock_client_class.return_value = mock_backstage_client
 
             result = runner.invoke(show, ["users"])
